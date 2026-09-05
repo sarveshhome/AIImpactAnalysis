@@ -1,6 +1,8 @@
 @AIImpactAnalysis_HostAddress = http://localhost:5077
 
-GET {{AIImpactAnalysis_HostAddress}}/weatherforecast/
+GET {{AIImpactAnalysis_HostAddress}}/api/Confluence/search?query=Inventory
 Accept: application/json
 
 ###
+GET {{AIImpactAnalysis_HostAddress}}/api/Confluence/search?query=AI
+Accept: application/json
