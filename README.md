@@ -83,6 +83,11 @@ This project is designed for step-by-step learning. The implementation follows t
 
 This is the initial project scaffold with a basic weather forecast API endpoint. The AI Impact Analysis features are being built incrementally following the requirements outlined in `PR.md`.
 
+---
+<img width="2988" height="1654" alt="image" src="https://github.com/user-attachments/assets/54af6ad0-6996-46d0-8884-c59fd426ae84" />
+
+---
+
 ## Contributing
 
 This is a learning project. Feel free to explore, experiment, and extend the implementation.
