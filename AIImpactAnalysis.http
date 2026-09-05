@@ -1,0 +1,6 @@
+@AIImpactAnalysis_HostAddress = http://localhost:5077
+
+GET {{AIImpactAnalysis_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
