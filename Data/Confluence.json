@@ -1,0 +1,18 @@
+[
+  {
+    "title": "Payment Project",
+    "content": "The Payment project handles customer payments. The estimated project cost is 10 lakh. Technologies used are .NET, React, and SQL Server."
+  },
+  {
+    "title": "Inventory Project",
+    "content": "The Inventory project manages product inventory and stock. The estimated project cost is 15 lakh. Technologies used are .NET, React, and Kafka."
+  },
+  {
+    "title": "Order Management Project",
+    "content": "The Order Management project handles customer orders. The estimated project cost is 20 lakh. Technologies used are .NET, React, Kafka, and SQL Server."
+  },
+  {
+    "title": "Travel Booking Project",
+    "content": "The Travel Booking project handles flight and hotel bookings. The estimated project cost is 25 lakh. Technologies used are .NET, React, SQL Server, and Azure."
+  }
+]
