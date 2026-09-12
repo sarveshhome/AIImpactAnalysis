@@ -5,24 +5,28 @@ namespace AIImpactAnalysis.Services;
 public class OrchestrationService : IOrchestrationService
 {
     private readonly ConfluenceSearchTool _confluenceTool;
+    private readonly ICohereService _cohereService;
 
     public OrchestrationService(
-        ConfluenceSearchTool confluenceTool)
+        ConfluenceSearchTool confluenceTool,
+        ICohereService cohereService)
     {
         _confluenceTool = confluenceTool;
+        _cohereService = cohereService;
     }
 
-    public async Task<string> ProcessUserQueryAsync(string chat)
+    public async Task<string> ProcessUserQueryAsync(
+        string chat)
     {
         if (string.IsNullOrWhiteSpace(chat))
         {
             return "User query cannot be empty.";
         }
 
-        // Call Confluence Function Tool
-        var confluenceResult =
-            await _confluenceTool.SearchConfluenceAsync(chat);
+        // Call Cohere
+        var response =
+            await _cohereService.ProcessQueryAsync(chat);
 
-        return confluenceResult;
+        return response;
     }
 }

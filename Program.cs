@@ -3,12 +3,12 @@ using AIImpactAnalysis.Tools;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-
 builder.Services.AddScoped<ConfluenceSearchTool>();
 builder.Services.AddScoped<ConfluenceSearchService>();
 builder.Services.AddScoped<IOrchestrationService,
                            OrchestrationService>();
+builder.Services.AddScoped<ICohereService,
+                           CohereService>();
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
