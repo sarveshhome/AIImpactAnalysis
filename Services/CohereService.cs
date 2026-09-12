@@ -1,3 +1,4 @@
+using AIImpactAnalysis.Tools;
 using OpenAI;
 using OpenAI.Chat;
 
@@ -6,9 +7,14 @@ namespace AIImpactAnalysis.Services;
 public class CohereService : ICohereService
 {
     private readonly ChatClient _chatClient;
+    private readonly ConfluenceSearchTool _confluenceTool;
 
-    public CohereService(IConfiguration configuration)
+    public CohereService(
+        IConfiguration configuration,
+        ConfluenceSearchTool confluenceTool)
     {
+        _confluenceTool = confluenceTool;
+
         var apiKey =
             configuration["Cohere:ApiKey"]
             ?? Environment.GetEnvironmentVariable("COHERE_API_KEY");
@@ -22,8 +28,7 @@ public class CohereService : ICohereService
         var options = new OpenAIClientOptions
         {
             Endpoint = new Uri(
-                configuration["Cohere:BaseUrl"]
-                ?? "https://api.cohere.com/compatibility/v1")
+                "https://api.cohere.ai/compatibility/v1")
         };
 
         var client = new OpenAIClient(
@@ -35,28 +40,93 @@ public class CohereService : ICohereService
             ?? "command-a-plus-05-2026");
     }
 
-    public async Task<string> ProcessQueryAsync(
-        string userQuery)
+    public async Task<string> ProcessQueryAsync(string userQuery)
+{
+    var messages = new List<ChatMessage>
     {
-        var messages = new List<ChatMessage>
+        new SystemChatMessage(
+            """
+            You are an AI project impact analysis assistant.
+
+            Use the available tools when project information
+            is required.
+
+            Never invent project information.
+
+            If the required information cannot be found,
+            clearly tell the user.
+            """),
+
+        new UserChatMessage(userQuery)
+    };
+
+    var tools = new[]
+    {
+        CreateConfluenceTool()
+    };
+
+    while (true)
+    {
+        ChatCompletion response =
+            await _chatClient.CompleteChatAsync(
+                messages,
+                new ChatCompletionOptions
+                {
+                    Tools = { tools[0] }
+                });
+
+        // Add Cohere's response to conversation
+        messages.Add(new AssistantChatMessage(response));
+
+        // No tool call → final answer
+        if (response.FinishReason != ChatFinishReason.ToolCalls)
         {
-            new SystemChatMessage(
-                """
-                You are an AI project impact analysis assistant.
+            return response.Content[0].Text;
+        }
 
-                Answer using the information provided by the
-                application's tools.
+        // Process tool calls
+        foreach (var toolCall in response.ToolCalls)
+        {
+            if (toolCall.FunctionName ==
+                ConfluenceToolDefinition.Name)
+            {
+                var arguments =
+                    System.Text.Json.JsonSerializer
+                        .Deserialize<Models.ConfluenceSearchArguments>(
+                            toolCall.FunctionArguments.ToString());
 
-                Do not invent project costs or project details.
-                If information is unavailable, clearly say so.
-                """),
+                if (arguments == null ||
+                    string.IsNullOrWhiteSpace(arguments.Query))
+                {
+                    messages.Add(
+                        new ToolChatMessage(
+                            toolCall.Id,
+                            "Invalid search query."));
 
-            new UserChatMessage(userQuery)
-        };
+                    continue;
+                }
 
-        var response =
-            await _chatClient.CompleteChatAsync(messages);
+                // Execute our actual C# tool
+                var result =
+                    await _confluenceTool
+                        .SearchConfluenceAsync(
+                            arguments.Query);
 
-        return response.Value.Content[0].Text;
+                // Give tool result back to LLM
+                messages.Add(
+                    new ToolChatMessage(
+                        toolCall.Id,
+                        result));
+            }
+        }
     }
+}
+     private ChatTool CreateConfluenceTool()
+    {
+            return ChatTool.CreateFunctionTool(
+                functionName: ConfluenceToolDefinition.Name,
+                functionDescription: ConfluenceToolDefinition.Description,
+                functionParameters: ConfluenceToolDefinition.Parameters);
+    }
+
 }
